@@ -1,3 +1,4 @@
+#import <Availability.h>
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import <QuartzCore/QuartzCore.h>
@@ -5,6 +6,12 @@
 #import <signal.h>
 
 // Private API declarations
+#if __IPHONE_OS_VERSION_MAX_ALLOWED < 160000
+@interface CALayer ()
+@property (nonatomic, assign) BOOL wantsExtendedDynamicRangeContent;
+@end
+#endif
+
 @interface CADisplayMode : NSObject
 @property (nonatomic, assign, readonly) NSUInteger preferredScale;
 @end
@@ -137,7 +144,12 @@ int main(int argc, const char * argv[]) {
         edrLayer.framebufferOnly = NO;
         edrLayer.wantsExtendedDynamicRangeContent = YES;
 
-        CGColorSpaceRef edrCS = CGColorSpaceCreateWithName(kCGColorSpaceExtendedLinearDisplayP3);
+        CGColorSpaceRef edrCS = NULL;
+        if (@available(iOS 12.3, *)) {
+            edrCS = CGColorSpaceCreateWithName(kCGColorSpaceExtendedLinearDisplayP3);
+        } else {
+            edrCS = CGColorSpaceCreateWithName(kCGColorSpaceDisplayP3);
+        }
         if (edrCS) {
             edrLayer.colorspace = edrCS;
             CGColorSpaceRelease(edrCS);
